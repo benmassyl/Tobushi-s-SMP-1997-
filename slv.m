@@ -9,6 +9,6 @@ function [sig_dot, eps_dot] = slv(sig, eps, eps_s, ctrl, mode, p)
             sig_dot = p.E*(eps_dot + (eps-eps_s)/p.lam - sig/p.mu);
         case 'stress'
             sig_dot = ctrl;
-            eps_dot = sig_dot/p.E + sig/p.mu - (eps)/p.lam;
+            eps_dot = sig_dot/p.E + sig/p.mu - (eps-eps_s)/p.lam;
     end
 end

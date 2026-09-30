@@ -1,13 +1,18 @@
-% parameters at T_h (Table 3), units MPa and s
-% Pour le moment les valeurs correspondent a T low
-p.E   = 907;
-p.mu  = 116000;      % 2.03 GPa·s -> MPa·s
-p.lam = 2840;
-p.C = 0.716
-p.el = 0.000184
+% coefficients pour les paramètres
+eg    = 146;      % MPa
+ae    = 38.1;
+mug   = 14000;    % MPa·s
+amu   = 44.2;
+lamg  = 521;      % s
+alam  = 35.4;
+cg    = 0.112;
+ac    = 38.7;
+epsg  = 0.003;    % fraction
+aeps  = 58.2;
+tempg = 328;      % K
 
 dt   = 0.1;              % s
-tend = 1000;             % s
+tend = 100000;             % s
 N    = round(tend/dt);
 
 % preallocate history arrays
@@ -16,21 +21,29 @@ sig = zeros(N+1,1);
 eps = zeros(N+1,1);
 
 % initial state: 
-sig(1)=10
-eps(1)=10/p.E
+sig(1)=8
+eps(1)=sig(1)/p.E
 eps_c =0
 eps_s =0
 
-for n = 1:7200
+%première étape du cycle : Déformation a chauffage constant
+for n = 1:720000
     [sd, ed] = slv(sig(n), eps(n), eps_s, 0, 'stress', p); % Creep 
     sig(n+1) = sig(n) + dt*sd;
     eps(n+1) = eps(n) + dt*ed;
 end
-eps_c = max(eps(1:7200));    
+%deuxième étape du cycle : Refroidissement a déformation bloquée
+eps_c = max(eps(1:720000));    
 eps_s = p.C*(eps_c - p.el); 
-for n = 7201:N
-    [sd, ed] = slv(sig(n), eps(n), eps_s, 0, 'strain', p);  % Relaxation
-    sig(n+1) = sig(n) + dt*sd;
+retour_elastique = 0
+for n = 720001:N
+    if retour_elastique == 0
+        eps(n) = eps (n) - sig(n)/p.E;
+        retour_elastique = 1
+    end
+
+    sig(n) = 0;
+    [sd, ed] = slv(sig(n), eps(n), eps_s, 0, 'stress', p);  % Relaxation
     eps(n+1) = eps(n) + dt*ed;
 end
 

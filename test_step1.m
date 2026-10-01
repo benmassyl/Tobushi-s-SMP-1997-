@@ -9,10 +9,12 @@ cg    = 0.112;
 ac    = 38.7;
 epsg  = 0.003;    % fraction
 aeps  = 58.2;
-tempg = 328;      % K
+tempg = 328;
+temp = tempg-15;
+alpha = 11.6e-5;     % K
 
-dt   = 0.1;              % s
-tend = 100000;             % s
+dt   = 0.01;              % s
+tend = 7200;             % s
 N    = round(tend/dt);
 
 % preallocate history arrays
@@ -27,16 +29,16 @@ eps_c =0
 eps_s =0
 
 %première étape du cycle : Déformation a chauffage constant
-for n = 1:720000
+for n = 1:36000
     [sd, ed] = slv(sig(n), eps(n), eps_s, 0, 'stress', p); % Creep 
     sig(n+1) = sig(n) + dt*sd;
     eps(n+1) = eps(n) + dt*ed;
 end
 %deuxième étape du cycle : Refroidissement a déformation bloquée
-eps_c = max(eps(1:720000));    
+eps_c = max(eps(1:36000));    
 eps_s = p.C*(eps_c - p.el); 
 retour_elastique = 0
-for n = 720001:N
+for n = 36001:N
     if retour_elastique == 0
         eps(n) = eps (n) - sig(n)/p.E;
         retour_elastique = 1
